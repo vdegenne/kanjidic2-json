@@ -398,8 +398,6 @@ async function buildData() {
 	});
 
 	fs.writeFile(`${__dirname}/../DATA.JSON`, JSON.stringify(json));
-
-	// console.log(JSON.stringify(json, null, 2));
 }
 
 await buildData();
