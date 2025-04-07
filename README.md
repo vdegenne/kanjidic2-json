@@ -14,7 +14,9 @@ Another more convenient way is to use the NodeJS ESM module with available typin
 
 - Install the library in your project:
 
-  npm i -D kanjidic2-json
+```bash
+npm i -D kanjidic2-json
+```
 
 - Use it in your program:
 
