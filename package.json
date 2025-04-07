@@ -1,0 +1,53 @@
+{
+	"name": "kanjidic2-json",
+	"version": "0.0.1",
+	"type": "module",
+	"devDependencies": {
+		"@types/xml2js": "^0.4.14",
+		"typescript": "^5.8.3",
+		"wireit": "^0.14.11",
+		"xml2js": "^0.6.2"
+	},
+	"scripts": {
+		"build": "wireit"
+	},
+	"wireit": {
+		"build": {
+			"command": "node ./lib/index.js",
+			"dependencies": [
+				"build:ts"
+			]
+		},
+		"build:ts": {
+			"command": "tsc --pretty",
+			"clean": "if-file-deleted",
+			"files": [
+				"./tsconfig.json",
+				"./src"
+			],
+			"output": [
+				"./lib"
+			],
+			"dependencies": [
+				"unpack-kanjidic2"
+			]
+		},
+		"download-kanjidic2": {
+			"command": "wget -P ./raw/ https://www.edrdg.org/kanjidic/kanjidic2.xml.gz",
+			"output": [
+				"./raw/kanjidic2.xml.gz"
+			],
+			"files": []
+		},
+		"unpack-kanjidic2": {
+			"command": "gunzip -k ./raw/kanjidic2.xml.gz",
+			"output": [
+				"./raw/kanjidic2.xml"
+			],
+			"dependencies": [
+				"download-kanjidic2"
+			],
+			"files": []
+		}
+	}
+}

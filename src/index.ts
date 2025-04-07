@@ -141,14 +141,13 @@ interface KanjiDic2CharacterRaw {
 			 *
 			 * @deprecated
 			 */
-			jlpt?: [1 | 2 | 3 | 4];
+			jlpt?: ['1' | '2' | '3' | '4'];
 		},
 	];
 
 	dic_number?: [
 		{
 			dic_ref: {
-				/** Converted to number in JSON */
 				_: string;
 				$: {
 					dr_type: DrType;
@@ -164,6 +163,7 @@ interface KanjiDic2CharacterRaw {
 			}[];
 		},
 	];
+
 	query_code: [
 		{
 			q_code: {
@@ -194,10 +194,10 @@ interface KanjiDic2CharacterRaw {
 	];
 }
 
-type Codepoint = {
+type Codepoints = {
 	ucs: string;
 } & Partial<Record<Exclude<CpType, 'ucs'>, string>>;
-type Radical = {
+type Radicals = {
 	classical: number;
 } & Partial<Record<Exclude<RadType, 'classical'>, number>>;
 type Range<
@@ -206,40 +206,45 @@ type Range<
 > = Acc['length'] extends N ? Acc[number] : Range<N, [...Acc, Acc['length']]>;
 type StrokeCount = Exclude<Range<35>, 0>;
 
-type DicNumber = Partial<Record<DrType, number>> & {
+interface Misc {
+	grade?: number;
+	/**
+	 * Can have one, two or three values (...)
+	 */
+	strokeCounts:
+		| [StrokeCount]
+		| [StrokeCount, StrokeCount]
+		| [StrokeCount, StrokeCount, StrokeCount];
+	freq?: number;
+	jlpt?: 1 | 2 | 3 | 4 | 5;
+	variants?: {type: ExtendedCpType; value: string}[];
+}
+
+type DicNumbers = Partial<Record<DrType, string>> & {
 	m_vol?: string; // Optional volume for Moro
 	m_page?: string; // Optional page for Moro
 };
 
-type QueryCode = Partial<Record<QcType, string>> & {
-	skip_misclass?: SkipMisClassType; // Optional when skip is present
-};
+// type QueryCodes = Partial<Record<QcType, string>> & {
+// 	skip_misclass?: SkipMisClassType; // Optional when skip is present
+// };
+type QueryCode =
+	| {type: QcType; value: string}
+	| {type: 'skip'; value: string; skip_misclass?: SkipMisClassType};
 
-type Reading = Partial<Record<ReadingType, string[]>>;
-type Meaning = Partial<Record<MeanLang | 'en', string[]>>;
+type Readings = Partial<Record<ReadingType, string[]>>;
+type Meanings = Partial<Record<MeanLang | 'en', string[]>>;
 
 export interface KanjiDic2Character {
 	literal: string;
-	codepoint: Codepoint;
-	radical: Radical;
-	misc: {
-		grade?: number;
-		/**
-		 * Can have one, two or three values (...)
-		 */
-		strokeCount:
-			| [StrokeCount]
-			| [StrokeCount, StrokeCount]
-			| [StrokeCount, StrokeCount, StrokeCount];
-		freq?: number;
-		jlpt?: 1 | 2 | 3 | 4 | 5;
-		variant?: [{type: ExtendedCpType; value: string}];
-	};
-	dicNumber?: DicNumber;
-	queryCode: QueryCode;
-	reading?: Reading;
-	meaning?: Meaning;
-	nanori?: string[];
+	codepoints: Codepoints;
+	radicals: Radicals;
+	misc: Misc;
+	dicNumbers?: DicNumbers;
+	queryCodes: QueryCode[];
+	readings?: Readings;
+	meanings?: Meanings;
+	nanoris?: string[];
 }
 
 async function buildData() {
@@ -249,50 +254,152 @@ async function buildData() {
 	);
 	const {kanjidic2} = await parseStringPromise(rawdata, {
 		explicitArray: true,
-		valueProcessors: [processors.parseNumbers],
+		// valueProcessors: [processors.parseNumbers],
 	});
 
 	const characters: KanjiDic2CharacterRaw[] = kanjidic2.character;
 
-	// const test: KanjiDic2Character = characters[1];
-	// console.log(JSON.stringify(test));
+	// console.log([
+	// 	...new Set(
+	// 		characters
+	// 			// .filter((c) => c.reading_meaning?.[0].rmgroup?.[0].meaning)
+	// 			.flatMap((char) => {
+	// 				return char.dic_number?.[0].dic_ref.flatMap((x) => typeof x._);
+	// 			}),
+	// 	),
+	// ]);
+	// characters.forEach((char) => {
+	// 	if (char.dic_number === undefined) {
+	// 		console.log(JSON.stringify(char, null, 2));
+	// 	}
+	// 	char.dic_number[0].dic_ref.forEach((x) => {
+	// 		if (x.$.m_vol) {
+	// 			console.log(x.$.m_vol);
+	// 			if (isNaN(Number(x.$.m_page))) {
+	// 				console.log(x.$.m_page);
+	// 			}
+	// 		}
+	// 	});
+	// });
+	// 	// if (
+	// 	// 	char.dic_number?.[0].dic_ref.forEach(x => typeof Number(x.$.m_page))
+	// 	// 		qc.q_code.some(
+	// 	// 			(q) => q.$.qc_type === 'skip' && q.$.skip_misclass === undefined,
+	// 	// 		),
+	// 	// 	)
+	// 	// ) {
+	// 	// 	throw new Error(`something is wrong with character ${char.literal}`);
+	// 	// }
+	//
+	// 	// const cp_values = character.codepoint.cp_value;
+	// 	// if (cp_values.some((v) => Object.keys(v.$).length > 1)) {
+	// 	// 	throw new Error(`something is wrong with character ${character.literal}`);
+	// 	// }
+	// });
 
-	// All possible values in codepoint
-	console.log([
-		...new Set(
-			characters
-				// .filter((c) => c.reading_meaning?.[0].rmgroup?.[0].meaning)
-				.flatMap((char) => {
-					return char.dic_number?.[0].dic_ref
-						.filter((x) => x.$.m_page)
-						.flatMap((x) => typeof x.$.m_page);
+	const json = characters.map((c) => {
+		// const json = characters.slice(5, 6).map((c) => {
+		const character: Partial<KanjiDic2Character> = {
+			literal: c.literal[0],
+		};
+		/* Codepoints */
+		const codepoints = Object.fromEntries(
+			c.codepoint[0].cp_value.map((c) => [c.$.cp_type, c._]),
+		);
+		if (!('ucs' in codepoints)) {
+			throw new Error('"ucs" not found.');
+		}
+		character.codepoints = codepoints as Codepoints;
+
+		/* Radicals */
+		const radicals = Object.fromEntries(
+			c.radical[0].rad_value.map((c) => [c.$.rad_type, c._]),
+		);
+		if (!('classical' in radicals)) {
+			throw new Error('"classical" not found.');
+		}
+		character.radicals = radicals as Radicals;
+
+		/* Misc */
+		const misc = c.misc[0];
+		character.misc = {
+			strokeCounts: misc.stroke_count.map((stroke) =>
+				Number(stroke),
+			) as KanjiDic2Character['misc']['strokeCounts'],
+		};
+		if (misc.grade) {
+			character.misc.grade = Number(misc.grade[0]);
+		}
+		if (misc.freq) {
+			character.misc.freq = Number(misc.freq[0]);
+		}
+		if (misc.jlpt) {
+			// TODO: need modern JLPT...
+			character.misc.jlpt = Number(
+				misc.jlpt,
+			) as KanjiDic2Character['misc']['jlpt'];
+		}
+		if (misc.variant) {
+			const variants = misc.variant.map((v) => ({
+				type: v.$.var_type,
+				value: v._,
+			}));
+			character.misc.variants = variants;
+		}
+
+		/* Dic Numbers */
+		if (c.dic_number) {
+			const dicNumbers = Object.fromEntries(
+				c.dic_number[0].dic_ref.flatMap((dn) => {
+					const pairs = [[dn.$.dr_type, dn._]];
+					if (dn.$.m_vol) {
+						pairs.push(['m_vol', dn.$.m_vol]);
+					}
+					if (dn.$.m_page) {
+						pairs.push(['m_page', dn.$.m_page]);
+					}
+					return pairs;
 				}),
-		),
-	]);
-	characters.forEach((char) => {
-		char.dic_number?.[0].dic_ref.forEach((x) => {
-			if (x.$.m_vol) {
-				console.log(x.$.m_vol);
-				if (isNaN(Number(x.$.m_page))) {
-					console.log(x.$.m_page);
+			);
+			character.dicNumbers = dicNumbers;
+		}
+
+		/* Query Codes */
+		const queryCodes = c.query_code[0].q_code.map((dn) => ({
+			type: dn.$.qc_type,
+			value: dn._,
+			...(dn.$.skip_misclass ? {skip_misclass: dn.$.skip_misclass} : {}),
+		}));
+		character.queryCodes = queryCodes;
+
+		if (c.reading_meaning) {
+			/* Readings */
+			if (c.reading_meaning[0].rmgroup[0].reading) {
+				character.readings = Object.fromEntries(
+					c.reading_meaning[0].rmgroup[0].reading.map((r) => [r.$.r_type, r._]),
+				);
+			}
+			/* Meanings */
+			if (c.reading_meaning[0].rmgroup[0].meaning) {
+				character.meanings = {};
+				for (const meaning of c.reading_meaning[0].rmgroup[0].meaning) {
+					const lang = typeof meaning === 'string' ? 'en' : meaning.$.m_lang;
+					const value = typeof meaning === 'string' ? meaning : meaning._;
+					(character.meanings[lang] ??= []).push(value);
 				}
 			}
-		});
-		// if (
-		// 	char.dic_number?.[0].dic_ref.forEach(x => typeof Number(x.$.m_page))
-		// 		qc.q_code.some(
-		// 			(q) => q.$.qc_type === 'skip' && q.$.skip_misclass === undefined,
-		// 		),
-		// 	)
-		// ) {
-		// 	throw new Error(`something is wrong with character ${char.literal}`);
-		// }
+			/* Nanoris */
+			if (c.reading_meaning[0].nanori) {
+				character.nanoris = c.reading_meaning[0].nanori;
+			}
+		}
 
-		// const cp_values = character.codepoint.cp_value;
-		// if (cp_values.some((v) => Object.keys(v.$).length > 1)) {
-		// 	throw new Error(`something is wrong with character ${character.literal}`);
-		// }
+		return character;
 	});
+
+	fs.writeFile(`${__dirname}/../DATA.JSON`, JSON.stringify(json));
+
+	// console.log(JSON.stringify(json, null, 2));
 }
 
 await buildData();
