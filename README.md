@@ -25,3 +25,9 @@ import KANJIS from 'kanjidic2-json' with {type: 'json'};
 ```
 
 **Note: If you are using TypeScript, you need to set `"resolveJsonModule"` to `true` in your configuration file.**
+
+## japanese-kanjis-module
+
+You can also use this convenient NPM module to create your own Kanji dataset based on some criteria your app requires and/or doesn't need (it uses `kanjidic2-json` in the background.)
+
+[GitHub page](https://github.com/vdegenne/japanese-kanjis-module)

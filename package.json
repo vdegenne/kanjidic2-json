@@ -13,7 +13,7 @@
 	},
 	"wireit": {
 		"build": {
-			"command": "node ./lib/index.js",
+			"command": "node ./lib/build.js",
 			"dependencies": [
 				"build:ts"
 			]
@@ -48,6 +48,18 @@
 				"download-kanjidic2"
 			],
 			"files": []
+		}
+	},
+	"files": [
+		"./lib",
+		"./KANJIS.json"
+	],
+	"module": "./lib/esm.js",
+	"types": "./lib/esm.d.ts",
+	"exports": {
+		".": {
+			"default": "./lib/esm.js",
+			"types": "./lib/esm.d.ts"
 		}
 	}
 }
