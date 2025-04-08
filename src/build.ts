@@ -83,29 +83,25 @@ async function buildData() {
 
 		/* Misc */
 		const misc = c.misc[0];
-		character.misc = {
-			strokeCounts: misc.stroke_count.map((stroke) =>
-				Number(stroke),
-			) as KanjiDic2Character['misc']['strokeCounts'],
-		};
+		character.strokeCounts = misc.stroke_count.map((stroke) =>
+			Number(stroke),
+		) as KanjiDic2Character['strokeCounts'];
 		if (misc.grade) {
-			character.misc.grade = Number(misc.grade[0]);
+			character.grade = Number(misc.grade[0]);
 		}
 		if (misc.freq) {
-			character.misc.freq = Number(misc.freq[0]);
+			character.freq = Number(misc.freq[0]);
 		}
 		if (misc.jlpt) {
 			// TODO: need modern JLPT...
-			character.misc.jlpt = Number(
-				misc.jlpt,
-			) as KanjiDic2Character['misc']['jlpt'];
+			character.jlpt = Number(misc.jlpt) as KanjiDic2Character['jlpt'];
 		}
 		if (misc.variant) {
 			const variants = misc.variant.map((v) => ({
 				type: v.$.var_type,
 				value: v._,
 			}));
-			character.misc.variants = variants;
+			character.variants = variants;
 		}
 
 		/* Dic Numbers */

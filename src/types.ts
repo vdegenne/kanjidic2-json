@@ -235,7 +235,17 @@ export interface KanjiDic2Character {
 	literal: string;
 	codepoints: Codepoints;
 	radicals: Radicals;
-	misc: Misc;
+	grade?: number;
+	/**
+	 * Can have one, two or three values (...)
+	 */
+	strokeCounts:
+		| [StrokeCount]
+		| [StrokeCount, StrokeCount]
+		| [StrokeCount, StrokeCount, StrokeCount];
+	freq?: number;
+	jlpt?: 1 | 2 | 3 | 4 | 5;
+	variants?: {type: ExtendedCpType; value: string}[];
 	dicNumbers?: DicNumbers;
 	queryCodes: QueryCode[];
 	readings?: Readings;
