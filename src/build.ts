@@ -59,7 +59,7 @@ async function buildData() {
 	// });
 
 	const json = characters.map((c) => {
-		// const json = characters.slice(5, 6).map((c) => {
+		// const json = characters.slice(0, 1).map((c) => {
 		const character: Partial<KanjiDic2Character> = {
 			literal: c.literal[0],
 		};
@@ -87,7 +87,7 @@ async function buildData() {
 			Number(stroke),
 		) as KanjiDic2Character['strokeCounts'];
 		if (misc.grade) {
-			character.grade = Number(misc.grade[0]);
+			character.grade = Number(misc.grade[0]) as KanjiDic2Character['grade'];
 		}
 		if (misc.freq) {
 			character.freq = Number(misc.freq[0]);
@@ -132,9 +132,12 @@ async function buildData() {
 		if (c.reading_meaning) {
 			/* Readings */
 			if (c.reading_meaning[0].rmgroup[0].reading) {
-				character.readings = Object.fromEntries(
-					c.reading_meaning[0].rmgroup[0].reading.map((r) => [r.$.r_type, r._]),
-				);
+				character.readings = {};
+				for (const reading of c.reading_meaning[0].rmgroup[0].reading) {
+					const type = reading.$.r_type;
+					const value = reading._;
+					(character.readings[type] ??= []).push(value);
+				}
 			}
 			/* Meanings */
 			if (c.reading_meaning[0].rmgroup[0].meaning) {
@@ -153,6 +156,8 @@ async function buildData() {
 
 		return character as KanjiDic2Character;
 	});
+
+	// console.log(json);
 
 	fs.writeFile(`${__dirname}/../KANJIS.json`, JSON.stringify(json));
 }

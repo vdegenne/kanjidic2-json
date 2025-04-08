@@ -118,7 +118,7 @@ export interface KanjiDic2CharacterRaw {
 	];
 	misc: [
 		{
-			/** Converted to number in JSON */
+			/** Converted to number in JSON from 1 to 6, 8 to 10 */
 			grade?: [string];
 			stroke_count:
 				| [StrokeCountRaw]
@@ -182,7 +182,7 @@ export interface KanjiDic2CharacterRaw {
 							r_type: ReadingType;
 						};
 					}[];
-					meaning?: (string | {_: string; $: {m_lang: MeanLang}})[];
+					meaning: (string | {_: string; $: {m_lang: MeanLang}})[];
 				},
 			];
 			nanori?: string[];
@@ -203,7 +203,7 @@ type Range<
 type StrokeCount = Exclude<Range<35>, 0>;
 
 interface Misc {
-	grade?: number;
+	grade?: 1 | 2 | 3 | 4 | 5 | 6 | 8 | 9 | 10;
 	/**
 	 * Can have one, two or three values (...)
 	 */
@@ -235,7 +235,7 @@ export interface KanjiDic2Character {
 	literal: string;
 	codepoints: Codepoints;
 	radicals: Radicals;
-	grade?: number;
+	grade?: 1 | 2 | 3 | 4 | 5 | 6 | 8 | 9 | 10;
 	/**
 	 * Can have one, two or three values (...)
 	 */

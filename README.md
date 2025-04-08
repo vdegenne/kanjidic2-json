@@ -22,6 +22,9 @@ npm i -D kanjidic2-json
 
 ```js
 import KANJIS from 'kanjidic2-json' with {type: 'json'};
+
+// Example: Shows the first JLPT1 Kanji
+KANJIS.filter((k) => k.jlpt === 1)[0].literal; // 安
 ```
 
 **Note: If you are using TypeScript, you need to set `"resolveJsonModule"` to `true` in your configuration file.**
