@@ -120,6 +120,9 @@ export interface KanjiDic2CharacterRaw {
 		{
 			/** Converted to number in JSON from 1 to 6, 8 to 10 */
 			grade?: [string];
+			/**
+			 * From 1 to 34.
+			 */
 			stroke_count:
 				| [StrokeCountRaw]
 				| [StrokeCountRaw, StrokeCountRaw]
@@ -206,6 +209,7 @@ interface Misc {
 	grade?: 1 | 2 | 3 | 4 | 5 | 6 | 8 | 9 | 10;
 	/**
 	 * Can have one, two or three values (...)
+	 * From 1 to 34.
 	 */
 	strokeCounts:
 		| [StrokeCount]
@@ -238,6 +242,7 @@ export interface KanjiDic2Character {
 	grade?: 1 | 2 | 3 | 4 | 5 | 6 | 8 | 9 | 10;
 	/**
 	 * Can have one, two or three values (...)
+	 * From 1 to 34.
 	 */
 	strokeCounts:
 		| [StrokeCount]

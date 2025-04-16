@@ -1,6 +1,6 @@
 {
 	"name": "kanjidic2-json",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"type": "module",
 	"devDependencies": {
 		"@types/xml2js": "^0.4.14",

@@ -1,12 +1,22 @@
 import fs from 'fs/promises';
-import {parseStringPromise, processors} from 'xml2js';
+import {parseStringPromise} from 'xml2js';
 import type {
 	Codepoints,
 	KanjiDic2Character,
 	KanjiDic2CharacterRaw,
 	Radicals,
 } from './types.js';
+
 const __dirname = import.meta.dirname;
+
+const modernKanjiJlptList: [{c: string; jlpt: KanjiDic2Character['jlpt']}] =
+	JSON.parse(
+		(
+			await fs.readFile(
+				import.meta.dirname + '/../raw/modern-kanji-jlpt-list.json',
+			)
+		).toString(),
+	);
 
 async function buildData() {
 	const rawdata = await fs.readFile(
@@ -92,10 +102,17 @@ async function buildData() {
 		if (misc.freq) {
 			character.freq = Number(misc.freq[0]);
 		}
-		if (misc.jlpt) {
-			// TODO: need modern JLPT...
-			character.jlpt = Number(misc.jlpt) as KanjiDic2Character['jlpt'];
+
+		/** Jlpt */
+		// Needs to find the jlpt
+		const jlptKanji = modernKanjiJlptList.find(
+			(kanji) => kanji.c === character.literal,
+		);
+		if (jlptKanji) {
+			character.jlpt = jlptKanji.jlpt;
 		}
+		// character.jlpt = Number(misc.jlpt) as KanjiDic2Character['jlpt'];
+
 		if (misc.variant) {
 			const variants = misc.variant.map((v) => ({
 				type: v.$.var_type,
